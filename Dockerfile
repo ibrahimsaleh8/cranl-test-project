@@ -17,7 +17,7 @@ COPY . .
 RUN npx prisma generate
 
 # Build the Next.js app
-ARG DATABASE_URL
+ARG DATABASE_URL='postgresql://neondb_owner:npg_Gr8RQCaBFNd4@ep-twilight-wildflower-agus16yi-pooler.c-2.eu-central-1.aws.neon.tech/qahwajige?sslmode=require&channel_binding=require'
 ENV DATABASE_URL=${DATABASE_URL}
 RUN npm run build
 
