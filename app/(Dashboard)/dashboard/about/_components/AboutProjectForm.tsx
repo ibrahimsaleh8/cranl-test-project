@@ -86,16 +86,13 @@ export default function AboutProjectForm({
           body: JSON.stringify({ ...formData, image: imageUrl }),
         });
       } else {
-        res = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/dashboard/${projectId}/update-about-project`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ...formData }),
+        res = await fetch(`/api/dashboard/${projectId}/update-about-project`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({ ...formData }),
+        });
       }
 
       if (res.ok) {
