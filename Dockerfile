@@ -25,11 +25,10 @@ COPY . .
 
 # Prisma + Next.js need DATABASE_URL at build time
 # ARG DATABASE_URL=postgresql://neondb_owner:npg_Gr8RQCaBFNd4@ep-twilight-wildflower-agus16yi-pooler.c-2.eu-central-1.aws.neon.tech/qahwajige?sslmode=require&channel_binding=require
-ARG DATABASE_URL=postgresql://postgresql:76lmSREChrCTn7MiCZf3Mw2AwzHDGVBL@new-db-ps2u8b:5432/new-db
+ARG DATABASE_URL=postgresql://neondb_owner:npg_Gr8RQCaBFNd4@ep-twilight-wildflower-agus16yi-pooler.c-2.eu-central-1.aws.neon.tech/qahwajige?sslmode=require&channel_binding=require
 ENV DATABASE_URL=$DATABASE_URL
 
 # Generate Prisma Client
-RUN npx prisma migrate dev
 RUN npx prisma generate
 
 # Build Next.js (standalone)
