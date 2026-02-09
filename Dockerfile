@@ -23,13 +23,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Prisma client generation
-RUN npx prisma generate
-
-# Build Next.js (DATABASE_URL must exist at build time for Prisma)
-ARG DATABASE_URL
+# Prisma + Next.js need DATABASE_URL at build time
+ARG DATABASE_URL=postgresql://neondb_owner:npg_Gr8RQCaBFNd4@ep-twilight-wildflower-agus16yi-pooler.c-2.eu-central-1.aws.neon.tech/qahwajige?sslmode=require&channel_binding=require
 ENV DATABASE_URL=$DATABASE_URL
 
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build Next.js (standalone)
 RUN npm run build
 
 ############################
@@ -42,11 +43,11 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Security: non-root user
+# Security: run as non-root user
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
-# Copy standalone output
+# Copy standalone build output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
