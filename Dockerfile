@@ -29,6 +29,7 @@ ARG DATABASE_URL=postgresql://postgresql:76lmSREChrCTn7MiCZf3Mw2AwzHDGVBL@new-db
 ENV DATABASE_URL=$DATABASE_URL
 
 # Generate Prisma Client
+RUN npx prisma migrate dev
 RUN npx prisma generate
 
 # Build Next.js (standalone)
