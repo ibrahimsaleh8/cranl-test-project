@@ -17,6 +17,8 @@ COPY . .
 RUN npx prisma generate
 
 # Build the Next.js app
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
 RUN npm run build
 
 # 2) Production stage
