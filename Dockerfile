@@ -1,45 +1,58 @@
-# 1) Build stage
-FROM node:20-alpine AS builder
+# syntax=docker.io/docker/dockerfile:1
 
-# Set working dir
+############################
+# Base
+############################
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package manifest files
-COPY package*.json ./
+############################
+# Dependencies
+############################
+FROM base AS deps
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install all dependencies (including devDependencies needed for build)
-RUN npm install
+############################
+# Builder
+############################
+FROM base AS builder
+WORKDIR /app
 
-# Copy rest of project
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client
+# Prisma client generation
 RUN npx prisma generate
 
-# Build the Next.js app
-ARG DATABASE_URL='postgresql://neondb_owner:npg_Gr8RQCaBFNd4@ep-twilight-wildflower-agus16yi-pooler.c-2.eu-central-1.aws.neon.tech/qahwajige?sslmode=require&channel_binding=require'
-ENV DATABASE_URL=${DATABASE_URL}
+# Build Next.js (DATABASE_URL must exist at build time for Prisma)
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npm run build
 
-# 2) Production stage
+############################
+# Runner (Production)
+############################
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
-# Set environment
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Copy only necessary files
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+# Security: non-root user
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+# Copy standalone output
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/app/generated ./app/generated
 
-# Expose port
+USER nextjs
+
 EXPOSE 3000
 
-# Start the server
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
